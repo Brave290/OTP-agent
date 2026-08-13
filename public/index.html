@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTP Agent</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #121212; color: white; display: flex; justify-content: center; padding-top: 50px; }
+        .container { background: #1e1e1e; padding: 30px; border-radius: 10px; width: 90%; max-width: 400px; text-align: center; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; border: none; }
+        button { width: 100%; padding: 10px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #218838; }
+        #loading { display: none; color: #ffc107; margin-top: 10px; }
+        #result { margin-top: 15px; font-weight: bold; }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>📱 OTP Agent</h2>
+        <input type="tel" id="phone" placeholder="08012345678" maxlength="11">
+        <button onclick="sendOTP()">Send OTP</button>
+        <div id="loading">⏳ Sending request...</div>
+        <div id="result"></div>
+    </div>
+    <script>
+        async function sendOTP() {
+            const phone = document.getElementById('phone').value;
+            const resultDiv = document.getElementById('result');
+            const loadingDiv = document.getElementById('loading');
+            if (phone.length < 10) return resultDiv.innerHTML = "<span class='error'>Invalid number</span>";
+            
+            loadingDiv.style.display = 'block';
+            resultDiv.innerHTML = '';
+            try {
+                const response = await fetch('/api/send-otp', { // Note the path change for Vercel
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone: phone })
+                });
+                const data = await response.json();
+                resultDiv.innerHTML = data.success ? `<span class='success'>✅ ${data.message}</span>` : `<span class='error'>❌ ${data.message}</span>`;
+            } catch { resultDiv.innerHTML = "<span class='error'>Network error</span>"; } 
+            finally { loadingDiv.style.display = 'none'; }
+        }
+    </script>
+</body>
+</html>
