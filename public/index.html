@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTP Agent</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #121212; color: white; display: flex; justify-content: center; padding-top: 50px; }
+        .container { background: #1e1e1e; padding: 30px; border-radius: 10px; width: 90%; max-width: 400px; text-align: center; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 5px; border: none; font-size: 16px; }
+        button { width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 5px;}
+        button:hover { background: #218838; }
+        #loading { display: none; color: #ffc107; margin-top: 10px; }
+        #result { margin-top: 15px; font-weight: bold; }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .code-box { background: #333; padding: 15px; border-radius: 8px; font-size: 24px; letter-spacing: 4px; margin-top: 10px; border: 1px solid #555; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>📱 OTP Generator</h2>
+        <p>Enter your Nigeria number to receive a 6-digit SportyBet code.</p>
+        <input type="tel" id="phone" placeholder="08012345678" maxlength="11">
+        <button onclick="sendOTP()">Send OTP</button>
+        <div id="loading">⏳ Sending SMS...</div>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        async function sendOTP() {
+            const phone = document.getElementById('phone').value;
+            const resultDiv = document.getElementById('result');
+            const loadingDiv = document.getElementById('loading');
+
+            if (phone.length < 11) {
+                resultDiv.innerHTML = "<span class='error'>Please enter an 11-digit number</span>";
+                return;
+            }
+
+            loadingDiv.style.display = 'block';
+            resultDiv.innerHTML = '';
+
+            try {
+                const response = await fetch('/api/send-sms', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone: phone })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    // Display the success and the generated code
+                    resultDiv.innerHTML = `
+                        <span class='success'>✅ ${data.message}</span>
+                        <div class='code-box'>${data.testCode}</div>
+                        <p style="font-size: 12px; color: #888; margin-top: 10px;">Enter this code on SportyBet to verify.</p>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<span class='error'>❌ ${data.message}</span>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class='error'>❌ Network error. Try again.</span>`;
+            } finally {
+                loadingDiv.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
