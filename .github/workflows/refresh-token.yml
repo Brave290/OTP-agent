@@ -5,6 +5,10 @@ on:
     - cron: '*/25 * * * *'
   workflow_dispatch:
 
+# CRITICAL FIX: Give the workflow permission to write to the repo
+permissions:
+  contents: write
+
 jobs:
   refresh:
     runs-on: ubuntu-latest
@@ -23,11 +27,16 @@ jobs:
       - name: Run Scraper
         run: node scrape-token.js
 
-      # FIX: Using double quotes to handle the apostrophe in your name
       - name: Commit new token
+        env:
+          # Pull the secret token you just created
+          PAT: ${{ secrets.GH_PAT }}
         run: |
           git config --global user.name "Akanji Mus'ab"
           git config --global user.email "akanjimusab@gmail.com"
           git add token.txt
           git diff --quiet && git diff --staged --quiet || git commit -m "Updated token"
+          
+          # Force git to use the Secret Token to authenticate
+          git remote set-url origin https://x-access-token:${PAT}@github.com/Brave290/OTP-agent.git
           git push
