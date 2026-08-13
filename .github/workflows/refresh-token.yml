@@ -1,0 +1,33 @@
+name: Refresh SportyBet Token
+
+on:
+  schedule:
+    # Runs every 25 minutes (SportyBet tokens expire around 30 mins)
+    - cron: '*/25 * * * *'
+  workflow_dispatch: # Allows you to run it manually from GitHub
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Puppeteer
+        run: npm install puppeteer
+
+      - name: Run Scraper
+        run: node scrape-token.js
+
+      - name: Commit new token
+        run: |
+          git config --global user.name 'github-actions[Akanji Mus'ab]'
+          git config --global user.email 'akanjimusab@gmail.com'
+          git add token.txt
+          git diff --quiet && git diff --staged --quiet || git commit -m "Updated token"
+          git push
